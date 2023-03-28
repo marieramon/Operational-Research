@@ -1,0 +1,34 @@
+from ortools.linear_solver import pywraplp
+
+# Create the linear solver object
+solver = pywraplp.Solver.CreateSolver('GLOP')
+
+# Define the variables
+x1 = solver.NumVar(0, solver.infinity(), 'x1')
+x2 = solver.NumVar(0, solver.infinity(), 'x2')
+
+# Define the objective function
+objective = solver.Objective()
+objective.SetCoefficient(x1, 22)
+objective.SetCoefficient(x2, 28)
+objective.SetMaximization()
+
+# Define the constraints
+c1 = solver.Constraint(0, 3400)
+c1.SetCoefficient(x1, 2)
+c1.SetCoefficient(x2, 3)
+
+c2 = solver.Constraint(0,960)
+c2.SetCoefficient(x1, 2)
+c2.SetCoefficient(x2, 3)
+
+# Solve the problem
+status = solver.Solve()
+
+if status == pywraplp.Solver.OPTIMAL:
+    print('Solution found!')
+    print('Objective value = ', solver.Objective().Value())
+    print('x1 = ', x1.solution_value())
+    print('x2 = ', x2.solution_value())
+else:
+    print('The problem does not have an optimal solution.')
