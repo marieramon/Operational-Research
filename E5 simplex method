@@ -1,0 +1,83 @@
+from ortools.linear_solver import pywraplp
+
+# Create the linear solver object
+solver = pywraplp.Solver.CreateSolver('GLOP')
+
+
+# Define the variables of the 1st exercise
+#x1 = solver.NumVar(0, 6, 'x1')
+#x2 = solver.NumVar(0, solver.infinity(), 'x2')
+#s1 = solver.NumVar(0, solver.infinity(), 's')
+#s2 = solver.NumVar(0, solver.infinity(), 't')
+
+# Define the variables for the 2nd exercise
+#x1 = solver.NumVar(0, solver.infinity(), 'x1')
+#x2 = solver.NumVar(0, solver.infinity(), 'x2')
+
+# Define the variables for the 3rd exercise
+x1 = solver.NumVar(0, solver.infinity(), 'x1')
+x2 = solver.NumVar(0, solver.infinity(), 'x2')
+
+
+# Define the constraints for the 1st exercise
+#c1 = solver.Constraint(-solver.infinity(), 2)
+#c1.SetCoefficient(x1, -1)
+#c1.SetCoefficient(x2, 1)
+#c1.SetCoefficient(s, 1)
+#c2 = solver.Constraint(-solver.infinity(), 8)
+#c2.SetCoefficient(x1, 1)
+#c2.SetCoefficient(x2, 2)
+#c2.SetCoefficient(t, 1)
+#c3 = solver.Constraint(-solver.infinity(), 6)
+#c3.SetCoefficient(x1, 1)
+
+# Define the constraints for the 2nd exercise
+#c1 = solver.Constraint(4, solver.infinity())
+#c1.SetCoefficient(x1, 1)
+#c1.SetCoefficient(x2, 1)
+#c2 = solver.Constraint(-solver.infinity(), 4)
+#c2.SetCoefficient(x1, -1)
+#c2.SetCoefficient(x2, 1)
+#c3 = solver.Constraint(-solver.infinity(), solver.infinity())
+#c3.SetCoefficient(x1, -1)
+#c3.SetCoefficient(x2, 2)
+#c3.SetBounds(-solver.infinity(), -4)
+
+# Define the constraints for the 3rd exercise
+c1 = solver.Constraint(4, solver.infinity())
+c1.SetCoefficient(x1, -1)
+c1.SetCoefficient(x2, 1)
+c2 = solver.Constraint(-solver.infinity(), -4)
+c2.SetCoefficient(x1, -1)
+c2.SetCoefficient(x2, 2)
+
+# Define the objective function to maximize for the 1st exercise
+#objective = solver.Objective()
+#objective.SetCoefficient(x1, 1)
+#objective.SetCoefficient(x2, 2)
+#objective.SetMaximization()
+
+# Define the objective function to maximize for the 2nd exercise 
+#objective = solver.Objective()
+#objective.SetCoefficient(x1, 3)
+#objective.SetCoefficient(x2, 1)
+#objective.SetMaximization()
+
+# Define the objective function to maximize for the 3rd exercise
+objective = solver.Objective()
+objective.SetCoefficient(x1, 3)
+objective.SetCoefficient(x2, 1)
+objective.SetMaximization()
+
+
+# Solve the problem
+status = solver.Solve()
+
+# Check if a solution was found
+if status == pywraplp.Solver.OPTIMAL:
+    # Print the optimal solution
+    print(f'Optimal objective value: {solver.Objective().Value()}')
+    print(f'x1 = {x1.solution_value()}')
+    print(f'x2 = {x2.solution_value()}')
+else:
+    print('The problem does not have an optimal solution.')
