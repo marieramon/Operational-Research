@@ -1,12 +1,11 @@
+        #1st and 2nd questions :
 import pandas as pd 
 import numpy as np
 import csv
 from collections import defaultdict
 
-# Read the CSV file
 data = pd.read_csv('transportation4.csv')
 
-# Extract the supply, demand, and cost matrix from the CSV
 supply = dict(zip(data['Warehouses'], data['Supply']))
 demand = dict(zip(data.columns[1:-1], data.iloc[-1, 1:-1]))
 costs = defaultdict(dict)
@@ -17,7 +16,6 @@ for i, row in data.iterrows():
         consumer = data.columns[j]
         costs[supplier][consumer] = row[j]
 
-# Vogel's approximation method
 allocation = defaultdict(dict)
 unallocated_supply = dict(supply)
 unallocated_demand = dict(demand)
@@ -44,7 +42,6 @@ while unallocated_supply and unallocated_demand:
     if unallocated_demand[max_consumer] == 0:
         del unallocated_demand[max_consumer]
 
-# Print the initial allocation
 print("Initial Allocation:")
 for consumer in sorted(demand):
     print("\t", consumer, end="")
@@ -59,16 +56,15 @@ for consumer in sorted(demand):
     print("\t", demand[consumer], end="")
 print()
 
-# Calculate the total cost
 total_cost = sum(allocation[supplier][consumer] * costs[supplier][consumer]
                  for supplier in allocation for consumer in allocation[supplier])
 
 print("\nTotal Cost =", total_cost)
 
 
-    # We tried to run the code with the CSV file directly in the following code but it didn't work exaclty, 
-    # so we tried an other approach with the reading of a matrix direclty starting from here
-    # (just to mention that if the result is not the good one, it is not because of the Vogel's code, but the reading of the CSV file)
+        # We tried to run the code with the CSV file directly in the following code but it didn't work exaclty, 
+        # so we tried an other approach with the reading of a matrix direclty starting from here
+        # (just to mention that if the result is not the good one, it is not because of the Vogel's code, but the reading of the CSV file)
     
 from collections import defaultdict
 
@@ -127,3 +123,53 @@ for g in sorted(costs):
     print()
 
 print("\nTotal Cost =", cost)
+
+
+        # 3rd question :
+
+def transportation_simplex(costs, supply, demand,max_iterations=3000):
+    m, n = costs.shape 
+    iteration = 0
+    
+    allocation = np.zeros((m, n))
+    
+    
+    while np.any(supply > 0) and np.any(demand > 0):
+        
+        reduced_costs = np.zeros_like(costs)
+        for i in range(m):
+            for j in range(n):
+                if allocation[i, j] == 0:
+                    reduced_costs[i, j] = costs[i, j]
+                else:
+                    reduced_costs[i, j] = 1e9
+        iteration += 1
+        if iteration >= max_iterations:
+            print("Maximum number of iterations reached.")
+            break
+        
+        min_cost_index = np.unravel_index(np.argmin(reduced_costs), reduced_costs.shape)
+        i, j = min_cost_index
+        
+        
+        quantity = min(supply[i], demand[j])
+        
+        allocation[i, j] = quantity
+        supply[i] -= quantity
+        demand[j] -= quantity
+    
+    return allocation
+
+
+costs = np.array([[28,7 ,16, 2, 30],
+                  [18 ,8, 14, 4, 20 ],
+                  [10, 12, 13, 5, 28]])
+
+supply = np.array([20,20,25])
+demand = np.array([12,14,12,18,9])
+
+allocation = transportation_simplex(costs, supply, demand)
+
+print("Matrix :")
+print(allocation)
+
