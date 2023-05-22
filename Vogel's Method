@@ -1,0 +1,129 @@
+import pandas as pd 
+import numpy as np
+import csv
+from collections import defaultdict
+
+# Read the CSV file
+data = pd.read_csv('transportation4.csv')
+
+# Extract the supply, demand, and cost matrix from the CSV
+supply = dict(zip(data['Warehouses'], data['Supply']))
+demand = dict(zip(data.columns[1:-1], data.iloc[-1, 1:-1]))
+costs = defaultdict(dict)
+
+for i, row in data.iterrows():
+    for j in range(1, len(row) - 1):
+        supplier = row[0]
+        consumer = data.columns[j]
+        costs[supplier][consumer] = row[j]
+
+# Vogel's approximation method
+allocation = defaultdict(dict)
+unallocated_supply = dict(supply)
+unallocated_demand = dict(demand)
+
+while unallocated_supply and unallocated_demand:
+    penalty = defaultdict(dict)
+
+    for supplier in unallocated_supply:
+        for consumer in unallocated_demand:
+            penalty[supplier][consumer] = abs(costs[supplier][consumer] - costs[supplier][next(iter(unallocated_demand.keys()))])
+
+    max_penalty = max(penalty, key=lambda s: max(penalty[s].values()))
+    max_supplier = max(unallocated_supply, key=lambda s: supply[s])
+    max_consumer = min(penalty[max_supplier], key=penalty[max_supplier].get)
+    quantity = min(unallocated_supply[max_supplier], unallocated_demand[max_consumer])
+
+    allocation[max_supplier][max_consumer] = quantity
+
+    unallocated_supply[max_supplier] -= quantity
+    if unallocated_supply[max_supplier] == 0:
+        del unallocated_supply[max_supplier]
+
+    unallocated_demand[max_consumer] -= quantity
+    if unallocated_demand[max_consumer] == 0:
+        del unallocated_demand[max_consumer]
+
+# Print the initial allocation
+print("Initial Allocation:")
+for consumer in sorted(demand):
+    print("\t", consumer, end="")
+print("\tSupply")
+for supplier in sorted(supply):
+    print(supplier, end="")
+    for consumer in sorted(demand):
+        print("\t", allocation.get(supplier, {}).get(consumer, 0), end="")
+    print("\t", supply[supplier])
+print("Demand", end="")
+for consumer in sorted(demand):
+    print("\t", demand[consumer], end="")
+print()
+
+# Calculate the total cost
+total_cost = sum(allocation[supplier][consumer] * costs[supplier][consumer]
+                 for supplier in allocation for consumer in allocation[supplier])
+
+print("\nTotal Cost =", total_cost)
+
+
+    # We tried to run the code with the CSV file directly in the following code but it didn't work exaclty, 
+    # so we tried an other approach with the reading of a matrix direclty starting from here
+    # (just to mention that if the result is not the good one, it is not because of the Vogel's code, but the reading of the CSV file)
+    
+from collections import defaultdict
+
+{'W': {'A': 28, 'B': 7, 'C': 16, 'D': 2, 'E': 30},
+          'X': {'A': 18, 'B': 8, 'C': 14, 'D': 4, 'E': 20},
+          'Y': {'A': 10, 'B': 12, 'C': 13, 'D': 5, 'E': 28}}
+demand = {'A': 12, 'B': 14, 'C': 12, 'D': 18, 'E': 9}
+cols = sorted(demand.keys())
+supply = {'W': 20, 'X': 20, 'Y': 25}
+res = {k: defaultdict(int) for k in costs}
+g = {}
+for x in supply:
+    g[x] = sorted(costs[x].keys(), key=lambda g: costs[x][g])
+for x in demand:
+    g[x] = sorted(costs.keys(), key=lambda g: costs[g][x])
+
+while g:
+    d = {}
+    for x in demand:
+        d[x] = costs[g[x][1]][x] - costs[g[x][0]][x] if len(g[x]) > 1 else costs[g[x][0]][x]
+    s = {}
+    for x in supply:
+        s[x] = costs[x][g[x][1]] - costs[x][g[x][0]] if len(g[x]) > 1 else costs[x][g[x][0]]
+    f = max(d, key=lambda n: d[n])
+    t = max(s, key=lambda n: s[n])
+    t, f = (f, g[f][0]) if d[f] > s[t] else (g[t][0], t)
+    v = min(supply[f], demand[t])
+    res[f][t] += v
+    demand[t] -= v
+    if demand[t] == 0:
+        for k, n in supply.items():
+            if n != 0:
+                g[k].remove(t)
+        del g[t]
+        del demand[t]
+    supply[f] -= v
+    if supply[f] == 0:
+        for k, n in demand.items():
+            if n != 0:
+                g[k].remove(f)
+        del g[f]
+        del supply[f]
+
+for n in cols:
+    print("\t", n, end="")
+print()
+cost = 0
+for g in sorted(costs):
+    print(g, "\t", end="")
+    for n in cols:
+        y = res[g][n]
+        if y != 0:
+            print(y, end="")
+        cost += y * costs[g][n]
+        print("\t", end="")
+    print()
+
+print("\nTotal Cost =", cost)
