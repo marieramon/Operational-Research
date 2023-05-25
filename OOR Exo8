@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+from ortools.linear_solver import pywraplp
+
+# Read projects from CSV file
+def readProjects(filename):
+    data = pd.read_csv(filename)
+    revenues = data['Revenue'].values
+    days = data['Days'].values
+    return revenues, days
+
+# Solve the problem
+def solve(projects, max_days):
+    revenues, days = projects
+
+    solver = pywraplp.Solver.CreateSolver('SCIP')
+
+    num_projects = len(revenues)
+    x = [solver.IntVar(0, 1, f'x{i}') for i in range(num_projects)]
+
+    objective = solver.Objective()
+    for i in range(num_projects):
+        objective.SetCoefficient(x[i], int(revenues[i])) 
+    objective.SetMaximization()
+
+    # Set the constraints
+    total_days = max_days 
+    constraint = solver.Constraint(0, total_days)
+    for i in range(num_projects):
+        constraint.SetCoefficient(x[i], int(days[i])) 
+
+    solver.Solve()
+
+    solution = [x[i].solution_value() for i in range(num_projects)]
+    max_revenue = objective.Value()
+
+    print('Solution:')
+    for i in range(num_projects):
+        print(f'Project {i+1}: {"Selected" if solution[i] == 1 else "Discarded"}')
+    print(f'Maximum Revenue: {max_revenue}')
+
+    
+filename = 'OOR Exo8.csv'
+max_days = 100
+
+projects = readProjects(filename)
+solve(projects, max_days)
